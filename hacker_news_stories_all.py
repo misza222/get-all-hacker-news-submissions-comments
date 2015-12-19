@@ -11,7 +11,7 @@ hitsPerPage = 1000
 
 schema = "CREATE TABLE hn_submissions (objectID INTEGER PRIMARY KEY, title varchar, url varchar, num_points int, num_comments int, author varchar, created_at DATETIME);"
 
-db = init_db('hn.sqlite3', schema)
+db = hacker_news.init_db('hn.sqlite3', schema)
 db.text_factory = str
 
 cur = db.cursor()

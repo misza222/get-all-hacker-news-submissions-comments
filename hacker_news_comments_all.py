@@ -13,7 +13,7 @@ hitsPerPage = 1000
 tag = re.compile(r'<[^>]+>')
 h = HTMLParser.HTMLParser()
 schema = "CREATE TABLE hn_comments (objectID INTEGER PRIMARY KEY, story_id INTEGER, parent_id INTEGER, comment_text varchar, num_points INTEGER, author varchar, created_at DATETIME);"
-db = init_db('hn.sqlite3', schema)
+db = hacker_news.init_db('hn.sqlite3', schema)
 db.text_factory = str
 
 cur = db.cursor()
