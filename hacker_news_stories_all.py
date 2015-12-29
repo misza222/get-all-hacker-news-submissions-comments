@@ -4,15 +4,25 @@ import datetime
 import time
 import pytz
 import hacker_news
+import sys
 
 # Set up database connection settings and other parameters
 ts = str(int(time.time()))
 hitsPerPage = 1000
 
-schema = "CREATE TABLE hn_submissions (objectID INTEGER PRIMARY KEY, title varchar, url varchar, num_points int, num_comments int, author varchar, created_at DATETIME);"
+schema = "\
+CREATE TABLE IF NOT EXISTS hn_submissions (\
+	objectID INTEGER PRIMARY KEY,\
+	title TEXT, url TEXT,\
+	num_points INTEGER,\
+	num_comments INTEGER,\
+	author TEXT,\
+	created_at DATETIME);"
 
 db = hacker_news.init_db('hn.sqlite3', schema)
 db.text_factory = str
+
+ts_last = hacker_news.get_last_ts(db)
 
 cur = db.cursor()
 
@@ -35,7 +45,7 @@ while True:
 			title = submission['title'].translate(dict.fromkeys([0x201c, 0x201d, 0x2011, 0x2013, 0x2014, 0x2018, 0x2019, 0x2026, 0x2032])).encode('utf-8')
 
 			# EST timestamp since USA activity reflects majority of HN activity
-			created_at = datetime.datetime.fromtimestamp(int(submission['created_at_i']), tz=pytz.timezone('America/New_York')).strftime('%Y-%m-%d %H:%M:%S')
+			created_at = datetime.datetime.fromtimestamp(int(submission['created_at_i']), tz=pytz.timezone('UTC')).strftime('%Y-%m-%d %H:%M:%S')
 
 
 			SQL = "INSERT INTO hn_submissions (objectID, title, url, num_points, num_comments, author, created_at) VALUES (?,?,?,?,?,?,?)"
@@ -51,6 +61,10 @@ while True:
 
 		# If there are no more HN stories, we're done!
 		if (data["nbHits"] < hitsPerPage):
+			break
+
+		# if from that point our database is already up2date
+		if submissions[-1 + len(submissions)]['created_at_i'] < ts_last:
 			break
 
 		num_processed += hitsPerPage

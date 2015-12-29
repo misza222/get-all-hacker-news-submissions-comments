@@ -1,5 +1,6 @@
 import os
-
+import time
+import calendar
 from sqlite3 import dbapi2 as sq3
 
 
@@ -13,3 +14,8 @@ def init_db(dbfile, schema):
     db.cursor().executescript(schema)
     db.commit()
     return db
+
+def get_last_ts(db):
+    cursor = db.cursor().execute('SELECT MAX(created_at) FROM hn_submissions;')
+    result = cursor.fetchone()
+    return calendar.timegm(time.strptime(result[0] + ' UTC', '%Y-%m-%d %H:%M:%S %Z'))
